@@ -8,6 +8,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "core.h"
+
 #define TOOL_NAME "lci"
 
 static char const *version[] = {
@@ -21,12 +23,12 @@ static char const *banner[] = {
 };
 
 static char const *usage[] = {
-	"Usage:",
+	"usage:",
 	"    " TOOL_NAME " [options]",
 	"    " TOOL_NAME " [options] compiler [compiler options]",
 	"    compiler [compiler options]    (via symbolic link)",
 	"",
-	"Options:",
+	"options:",
 	"    -b, --no-banner    suppress banner",
 	"    -c, --no-compiler  do not run compiler",
 	"    -f, --force-lint   run lint even after failed compile",
@@ -48,10 +50,9 @@ static void fputa(char const *a[], FILE * s)
 {
 	int i;
 
-	for (i = 0; a[i] != NULL; ++i) {
+	for (i = 0; a[i] != NULL; ++i)
 		if (fprintf(s, "%s\n", a[i]) < 0)
 			exit(EXIT_FAILURE);
-	}
 }
 
 static int lci_called_by_real_name(char const *path)
@@ -81,100 +82,88 @@ static void print_version_on(FILE * s)
 	fputa(version, s);
 }
 
-static int parse_bool_flag(char const *arg, char const *option, int unique_from)
+int parse_bool_flag(char const unknown_arg[], char const option[],
+		    int unique_from)
 {
-	if (unique_from < 0)
-		return strcmp(option, arg) == 0;
-	if (strncmp(option, arg, unique_from) == 0) {
-		;
+	int match;
+
+	if (unique_from < 0) {
+		match = strcmp(unknown_arg, option) == 0;
+	} else {
+		char const *res = strstr(option, unknown_arg);
+		if (res != option)
+			match = 0;
+		else
+			match = strlen(unknown_arg) >= (size_t) unique_from;
 	}
-	return 1;
+	return match;
 }
 
-static void lci_options(int *c, char *v[])
+static void remove_index(int *offset, int *acnt, char *avec[])
 {
 	int i;
 
-	if (*c < 2) {
+	for (i = *offset; i != *acnt; ++i)
+		avec[i] = avec[i + 1];
+	--(*acnt);
+	--(*offset);
+}
+
+static void lci_options(int *acnt, char *avec[])
+{
+	int i;
+
+	if (*acnt < 2) {
 		print_usage_on(stderr);
 		exit(EXIT_FAILURE);
 	}
-	for (i = 1; i != *c; ++i) {
-		if (parse_bool_flag(v[i], "-b", -1)
-		    || parse_bool_flag(v[i], "--no-banner", 6)) {
-			int j;
-
-			fputs("No banner\n", stderr);
+	for (i = 1; i != *acnt; ++i) {
+		if (parse_bool_flag(avec[i], "-b", -1) ||
+		    parse_bool_flag(avec[i], "--no-banner", 6)) {
+			fputs("no banner\n", stderr);
 			show_banner = 0;
-			for (j = i; j != *c; ++j)
-				v[j] = v[j + 1];
-			--(*c);
-			--i;
+			remove_index(&i, acnt, avec);
 			continue;
 		}
-		if (strcmp(v[i], "-c") == 0 ||
-		    strcmp(v[i], "--no-c") == 0 ||
-		    strcmp(v[i], "--no-co") == 0 ||
-		    strcmp(v[i], "--no-com") == 0 ||
-		    strcmp(v[i], "--no-comp") == 0 ||
-		    strcmp(v[i], "--no-compi") == 0 ||
-		    strcmp(v[i], "--no-compil") == 0 ||
-		    strcmp(v[i], "--no-compile") == 0 ||
-		    strcmp(v[i], "--no-compiler") == 0) {
-			fputs("No compiler\n", stderr);
+		if (parse_bool_flag(avec[i], "-c", -1) ||
+		    parse_bool_flag(avec[i], "--no-compiler", 6)) {
+			fputs("no compiler\n", stderr);
 			run_compiler = 0;
+			remove_index(&i, acnt, avec);
 			continue;
 		}
-		if (strcmp(v[i], "-f") == 0 ||
-		    strcmp(v[i], "--f") == 0 ||
-		    strcmp(v[i], "--fo") == 0 ||
-		    strcmp(v[i], "--for") == 0 ||
-		    strcmp(v[i], "--forc") == 0 ||
-		    strcmp(v[i], "--force") == 0 ||
-		    strcmp(v[i], "--force-") == 0 ||
-		    strcmp(v[i], "--force-l") == 0 ||
-		    strcmp(v[i], "--force-li") == 0 ||
-		    strcmp(v[i], "--force-lin") == 0 ||
-		    strcmp(v[i], "--force-lint") == 0) {
-			fputs("Force lint\n", stderr);
+		if (parse_bool_flag(avec[i], "-f", -1) ||
+		    parse_bool_flag(avec[i], "--force-lint", 3)) {
+			fputs("force lint\n", stderr);
 			force_lint = 1;
+			remove_index(&i, acnt, avec);
 			continue;
 		}
-		if (strcmp(v[i], "-l") == 0 ||
-		    strcmp(v[i], "--no-l") == 0 ||
-		    strcmp(v[i], "--no-li") == 0 ||
-		    strcmp(v[i], "--no-lin") == 0 ||
-		    strcmp(v[i], "--no-lin") == 0 ||
-		    strcmp(v[i], "--no-lint") == 0) {
-			fputs("No lint\n", stderr);
+		if (parse_bool_flag(avec[i], "-l", -1) ||
+		    parse_bool_flag(avec[i], "--no-lint", 6)) {
+			fputs("no lint\n", stderr);
 			run_lint = 0;
+			remove_index(&i, acnt, avec);
 			continue;
 		}
-		if (strcmp(v[i], "-v") == 0 ||
-		    strcmp(v[i], "--verb") == 0 ||
-		    strcmp(v[i], "--verbo") == 0 ||
-		    strcmp(v[i], "--verbos") == 0 ||
-		    strcmp(v[i], "--verbose") == 0) {
-			fputs("Verbose\n", stderr);
+		if (parse_bool_flag(avec[i], "-v", -1) ||
+		    parse_bool_flag(avec[i], "--verbose", 6)) {
+			fputs("verbose\n", stderr);
 			++verbose;
+			remove_index(&i, acnt, avec);
 			continue;
 		}
-		if (strcmp(v[i], "--h") == 0 ||
-		    strcmp(v[i], "--he") == 0 ||
-		    strcmp(v[i], "--hel") == 0 || strcmp(v[i], "--help") == 0) {
-			fputs("Help\n", stderr);
+		if (parse_bool_flag(avec[i], "--help", 3)) {
+			fputs("help\n", stderr);
 			print_usage_on(stdout);
 			exit(EXIT_SUCCESS);
 		}
-		if (strcmp(v[i], "--vers") == 0 ||
-		    strcmp(v[i], "--versi") == 0 ||
-		    strcmp(v[i], "--versio") == 0 ||
-		    strcmp(v[i], "--version") == 0) {
-			fputs("Version\n", stderr);
+		if (parse_bool_flag(avec[i], "--version", 6)) {
+			fputs("version\n", stderr);
 			print_version_on(stdout);
 			exit(EXIT_SUCCESS);
 		}
-
+		break;
 	}
 }
 
@@ -186,7 +175,8 @@ int lci_main(int argc, char *argv[])
 		fputa(banner, stderr);
 	if (run_compiler) {
 		/*
-		 * check compiler options of compiling and linking
+		 * check compiler options for compiling and/or linking only,
+		 * turn off lint if anything else.
 		 */
 	}
 
@@ -200,7 +190,7 @@ int lci_main(int argc, char *argv[])
 		 */
 		int status;
 		pid_t pid;
-		pid_t wid;
+		pid_t wpid;
 
 		pid = fork();
 		if (-1 == pid) {
@@ -212,13 +202,12 @@ int lci_main(int argc, char *argv[])
 			perror(TOOL_NAME ": execvp");
 			_exit(EXIT_FAILURE);
 		}
-		wid = waitpid(pid, &status, 0);
-		if (wid != pid) {
+		wpid = waitpid(pid, &status, 0);
+		if (wpid != pid) {
 			perror(TOOL_NAME ": waitpid");
 			exit(EXIT_FAILURE);
 		}
-		if (WIFEXITED(status)
-		    && (WEXITSTATUS(status) != EXIT_SUCCESS)) {
+		if (WIFEXITED(status) && (WEXITSTATUS(status) != EXIT_SUCCESS)) {
 			if (force_lint) {
 				/*
 				 * run lint anyway

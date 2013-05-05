@@ -1,7 +1,7 @@
-#ifndef ENTRY_H_INCLUDED_
-#define ENTRY_H_INCLUDED_
+#ifndef CORE_H
+#define CORE_H
 #else
-#error "ENTRY_H_INCLUDED_"
+#error "CORE_H"
 #endif
 
-void lci_main(void);
+int parse_bool_flag(char const unknown_arg[], char const option[], int unique_from);
