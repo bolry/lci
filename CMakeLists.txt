@@ -1,0 +1,7 @@
+cmake_minimum_required (VERSION 2.6)
+project(LCI)
+add_library (lcicore core.c)
+include_directories (${LCI_SOURCE_DIR})
+link_directories (${LCI_BINARY_DIR})
+add_executable (lci main.c)
+target_link_libraries (lci lcicore)
