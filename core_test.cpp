@@ -2,16 +2,25 @@
 
 #include <gmock/gmock.h>
 
-static char const empty[0+1] = "";
-static char const another_empty[0+1] = "";
-static char const dash[] = "-";
-static char const another_dash[] = "-";
-static char const str_one[1+1] = "a";
-static char const str_two[2+1] = "bc";
+namespace {
+
+using namespace testing;
+
+char const empty[0+1] = "";
+char const another_empty[0+1] = "";
+char const dash[] = "-";
+char const another_dash[] = "-";
+char const str_one[1+1] = "a";
+char const str_two[2+1] = "bc";
+
+TEST(ParseBoolFlagWithEmptyTest, ConstantsAreOK)
+{
+	ASSERT_THAT(empty, Ne(another_empty));
+	ASSERT_THAT(empty, StrEq(another_empty));
+}
 
 TEST(ParseBoolFlagWithEmptyTest, EmptyExact)
 {
-	EXPECT_NE(empty, another_empty);
 	EXPECT_TRUE(parse_bool_flag(empty, another_empty, -1));
 	EXPECT_TRUE(parse_bool_flag(empty, empty, -1));
 }
@@ -24,7 +33,6 @@ TEST(ParseBoolFlagWithEmptyTest, EmptyToSomethingExact)
 }
 TEST(ParseBoolFlagWithEmptyTest, EmptyZero)
 {
-	EXPECT_NE(empty, another_empty);
 	EXPECT_TRUE(parse_bool_flag(empty, another_empty, 0));
 	EXPECT_TRUE(parse_bool_flag(empty, empty, 0));
 }
@@ -37,7 +45,6 @@ TEST(ParseBoolFlagWithEmptyTest, EmptyToSomethingZero)
 }
 TEST(ParseBoolFlagWithEmptyTest, EmptyToFirstChar)
 {
-	EXPECT_NE(empty, another_empty);
 	EXPECT_FALSE(parse_bool_flag(empty, another_empty, 1));
 	EXPECT_FALSE(parse_bool_flag(empty, empty, 1));
 }
@@ -51,6 +58,12 @@ TEST(ParseBoolFlagWithEmptyTest, EmptyToSomethingToFirstChar)
 /*
  *
  */
+TEST(ParseBoolFlagWithDashTest, ConstantsAreOK)
+{
+	ASSERT_THAT(dash, Ne(another_dash));
+	ASSERT_THAT(dash, StrEq(another_dash));
+}
+
 TEST(ParseBoolFlagWithDashTest, Exact)
 {
 	EXPECT_NE(dash, another_dash);
@@ -103,3 +116,5 @@ TEST(ParseBoolFlagWithDashTest, DashToDashieFirstChar)
 	EXPECT_TRUE(parse_bool_flag(dash, "-a", 1));
 	EXPECT_FALSE(parse_bool_flag("-a", dash, 1));
 }
+
+} // namespace

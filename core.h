@@ -8,7 +8,8 @@
 extern "C" {
 #endif
 
-int parse_bool_flag(char const unknown_arg[], char const option[], int unique_from);
+	int parse_bool_flag(char const unknown_arg[], char const option[],
+			    int unique_from);
 
 #ifdef __cplusplus
 }
