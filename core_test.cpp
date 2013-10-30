@@ -2,9 +2,9 @@
 
 #include <gmock/gmock.h>
 
-namespace {
-
 using namespace testing;
+
+namespace {
 
 char const empty[0+1] = "";
 char const another_empty[0+1] = "";
