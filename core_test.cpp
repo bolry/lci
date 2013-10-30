@@ -66,7 +66,6 @@ TEST(ParseBoolFlagWithDashTest, ConstantsAreOK)
 
 TEST(ParseBoolFlagWithDashTest, Exact)
 {
-	EXPECT_NE(dash, another_dash);
 	EXPECT_TRUE(parse_bool_flag(dash, another_dash, -1));
 	EXPECT_TRUE(parse_bool_flag(dash, dash, -1));
 }
@@ -79,7 +78,6 @@ TEST(ParseBoolFlagWithDashTest, DashoSomethingExact)
 }
 TEST(ParseBoolFlagWithDashTest, DashZero)
 {
-	EXPECT_NE(dash, another_dash);
 	EXPECT_TRUE(parse_bool_flag(dash, another_dash, 0));
 	EXPECT_TRUE(parse_bool_flag(dash, dash, 0));
 }
@@ -92,7 +90,6 @@ TEST(ParseBoolFlagWithDashTest, DashToSomethingZero)
 }
 TEST(ParseBoolFlagWithDashTest, DashToFirstChar)
 {
-	EXPECT_NE(dash, another_dash);
 	EXPECT_TRUE(parse_bool_flag(dash, another_dash, 1));
 	EXPECT_TRUE(parse_bool_flag(dash, dash, 1));
 }
