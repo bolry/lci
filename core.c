@@ -1,3 +1,21 @@
+/*
+ * Lint compiler interceptor
+ * Copyright (C) 2013 Bo Rydberg
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #define _GNU_SOURCE
 
 #include <libgen.h>
@@ -12,8 +30,16 @@
 
 #define TOOL_NAME "lci"
 
+static char const *copyright[] = {
+	"Copyright (C) 2013 Bo Rydberg",
+	"License GPLv2: GNU GPL version 2 or later <http://gnu.org/licenses/>",
+	"This is free software: you are free to change and redistribute it.",
+	"There is NO WARRANTY, to the extent permitted by law.",
+	NULL
+};
+
 static char const *version[] = {
-	TOOL_NAME "",
+	"Lint Compiler Interceptor 0.0",
 	NULL
 };
 
@@ -37,6 +63,9 @@ static char const *usage[] = {
 	"",
 	"        --help         print this text and exit",
 	"        --version      print version and exit",
+	"",
+	"Report bugs to: mailing-address",
+	"Lint Compiler Interceptor home page: <https://github.com/bolry/lci/>",
 	NULL
 };
 
@@ -46,12 +75,12 @@ static int run_lint = 1;
 static int show_banner = 1;
 static int verbose = 0;
 
-static void fputa(char const *a[], FILE * s)
+static void fputa(char const *arr[], FILE * stream)
 {
 	int i;
 
-	for (i = 0; a[i] != NULL; ++i)
-		if (fprintf(s, "%s\n", a[i]) < 0)
+	for (i = 0; arr[i] != NULL; ++i)
+		if (fprintf(stream, "%s\n", arr[i]) < 0)
 			exit(EXIT_FAILURE);
 }
 
@@ -72,14 +101,15 @@ static int lci_called_by_real_name(char const *path)
 	return same;
 }
 
-static void print_usage_on(FILE * s)
+static void print_usage_on(FILE * stream)
 {
-	fputa(usage, s);
+	fputa(usage, stream);
 }
 
-static void print_version_on(FILE * s)
+static void print_version_on(FILE * stream)
 {
-	fputa(version, s);
+	fputa(version, stream);
+	fputa(copyright, stream);
 }
 
 int parse_bool_flag(char const unknown_arg[], char const option[],
@@ -88,77 +118,77 @@ int parse_bool_flag(char const unknown_arg[], char const option[],
 	int match;
 
 	if (unique_from < 0) {
-		match = strcmp(unknown_arg, option) == 0;
+		match = (strcmp(unknown_arg, option) == 0);
 	} else {
-		char const *res = strstr(option, unknown_arg);
+		char const * const res = strstr(option, unknown_arg);
 		if (res != option)
 			match = 0;
 		else
-			match = strlen(unknown_arg) >= (size_t) unique_from;
+			match = (strlen(unknown_arg) >= (size_t) unique_from);
 	}
 	return match;
 }
 
-static void remove_index(int *offset, int *acnt, char *avec[])
+static void remove_index(int *offset, int *cnt, char *vec[])
 {
 	int i;
 
-	for (i = *offset; i != *acnt; ++i)
-		avec[i] = avec[i + 1];
-	--(*acnt);
+	for (i = *offset; i != *cnt; ++i)
+		vec[i] = vec[i + 1];
+	--(*cnt);
 	--(*offset);
 }
 
-static void lci_options(int *acnt, char *avec[])
+static void lci_options(int *cnt, char *vec[])
 {
 	int i;
 
-	if (*acnt < 2) {
+	if (*cnt < 2) {
 		print_usage_on(stderr);
 		exit(EXIT_FAILURE);
 	}
-	for (i = 1; i != *acnt; ++i) {
-		if (parse_bool_flag(avec[i], "-b", -1) ||
-		    parse_bool_flag(avec[i], "--no-banner", 6)) {
+	for (i = 1; i != *cnt; ++i) {
+		if (parse_bool_flag(vec[i], "-b", -1) ||
+		    parse_bool_flag(vec[i], "--no-banner", 6)) {
 			fputs("no banner\n", stderr);
 			show_banner = 0;
-			remove_index(&i, acnt, avec);
+			remove_index(&i, cnt, vec);
 			continue;
 		}
-		if (parse_bool_flag(avec[i], "-c", -1) ||
-		    parse_bool_flag(avec[i], "--no-compiler", 6)) {
+		if (parse_bool_flag(vec[i], "-c", -1) ||
+		    parse_bool_flag(vec[i], "--no-compiler", 6)) {
 			fputs("no compiler\n", stderr);
 			run_compiler = 0;
-			remove_index(&i, acnt, avec);
+			remove_index(&i, cnt, vec);
 			continue;
 		}
-		if (parse_bool_flag(avec[i], "-f", -1) ||
-		    parse_bool_flag(avec[i], "--force-lint", 3)) {
+		if (parse_bool_flag(vec[i], "-f", -1) ||
+		    parse_bool_flag(vec[i], "--force-lint", 3)) {
 			fputs("force lint\n", stderr);
 			force_lint = 1;
-			remove_index(&i, acnt, avec);
+			remove_index(&i, cnt, vec);
 			continue;
 		}
-		if (parse_bool_flag(avec[i], "-l", -1) ||
-		    parse_bool_flag(avec[i], "--no-lint", 6)) {
+		if (parse_bool_flag(vec[i], "-l", -1) ||
+		    parse_bool_flag(vec[i], "--no-lint", 6)) {
 			fputs("no lint\n", stderr);
 			run_lint = 0;
-			remove_index(&i, acnt, avec);
+			remove_index(&i, cnt, vec);
 			continue;
 		}
-		if (parse_bool_flag(avec[i], "-v", -1) ||
-		    parse_bool_flag(avec[i], "--verbose", 6)) {
+		if (parse_bool_flag(vec[i], "-v", -1) ||
+		    parse_bool_flag(vec[i], "--verbose", 6)) {
 			fputs("verbose\n", stderr);
 			++verbose;
-			remove_index(&i, acnt, avec);
+			remove_index(&i, cnt, vec);
 			continue;
 		}
-		if (parse_bool_flag(avec[i], "--help", 3)) {
+		if (parse_bool_flag(vec[i], "--help", 3)) {
 			fputs("help\n", stderr);
 			print_usage_on(stdout);
 			exit(EXIT_SUCCESS);
 		}
-		if (parse_bool_flag(avec[i], "--version", 6)) {
+		if (parse_bool_flag(vec[i], "--version", 6)) {
 			fputs("version\n", stderr);
 			print_version_on(stdout);
 			exit(EXIT_SUCCESS);
@@ -218,14 +248,14 @@ int lci_main(int argc, char *argv[])
 		}
 		if (WIFSIGNALED(status))
 			exit(WTERMSIG(status));
-		argv[0] = "fl";
+		argv[0] = (char *)"fl";
 		(void)execvp(argv[0], &argv[0]);
 		perror(TOOL_NAME ": execvp");
 	} else if (run_compiler) {
 		(void)execvp(argv[1], &argv[1]);
 		perror(TOOL_NAME ": execvp");
 	} else if (run_lint) {
-		argv[0] = "fl";
+		argv[0] = (char *)"fl";
 		(void)execvp(argv[0], &argv[0]);
 		perror(TOOL_NAME ": execvp");
 	} else {

@@ -13,5 +13,5 @@ include_directories(
 	${gmock_SOURCE_DIR}/include
 	${gmock_SOURCE_DIR})
 add_executable(unit_test core_test.cpp)
-target_link_libraries(unit_test gmock_main lcicore)
+target_link_libraries(unit_test lcicore gmock_main)
 add_test(unit_test unit_test)
