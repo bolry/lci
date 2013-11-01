@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "core.h"
+#include "inc/core.h"
 
 #include <gmock/gmock.h>
 

@@ -26,7 +26,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "core.h"
+#include "inc/core.h"
 
 #define TOOL_NAME "lci"
 
