@@ -22,112 +22,106 @@
 
 using namespace testing;
 
-namespace {
-
-char const empty[0+1] = "";
-char const another_empty[0+1] = "";
+char const empty[0 + 1] = "";
+char const another_empty[0 + 1] = "";
 char const dash[] = "-";
 char const another_dash[] = "-";
-char const str_one[1+1] = "a";
-char const str_two[2+1] = "bc";
+char const str_one[1 + 1] = "a";
+char const str_two[2 + 1] = "bc";
 
-TEST(ParseBoolFlagWithEmpty, TestDataPrecondition)
+TEST(ParseBoolFlag, TestdataPreconditions)
 {
 	ASSERT_THAT(empty, Ne(another_empty));
 	ASSERT_THAT(empty, StrEq(another_empty));
 }
 
-TEST(ParseBoolFlagWithEmpty, EmptyExact)
+TEST(ParseBoolFlag,StrstrSearchOnEmptyNeedle)
 {
-	EXPECT_TRUE(parse_bool_flag(empty, another_empty, -1));
-	EXPECT_TRUE(parse_bool_flag(empty, empty, -1));
-}
-TEST(ParseBoolFlagWithEmpty, EmptyToSomethingExact)
-{
-	EXPECT_FALSE(parse_bool_flag(empty, str_one, -1));
-	EXPECT_FALSE(parse_bool_flag(str_one, empty, -1));
-	EXPECT_FALSE(parse_bool_flag(empty, str_two, -1));
-	EXPECT_FALSE(parse_bool_flag(str_two, empty, -1));
-}
-TEST(ParseBoolFlagWithEmpty, EmptyZero)
-{
-	EXPECT_TRUE(parse_bool_flag(empty, another_empty, 0));
-	EXPECT_TRUE(parse_bool_flag(empty, empty, 0));
-}
-TEST(ParseBoolFlagWithEmpty, EmptyToSomethingZero)
-{
-	EXPECT_TRUE(parse_bool_flag(empty, str_one, 0));
-	EXPECT_FALSE(parse_bool_flag(str_one, empty, 0));
-	EXPECT_TRUE(parse_bool_flag(empty, str_two, 0));
-	EXPECT_FALSE(parse_bool_flag(str_two, empty, 0));
-}
-TEST(ParseBoolFlagWithEmpty, EmptyToFirstChar)
-{
-	EXPECT_FALSE(parse_bool_flag(empty, another_empty, 1));
-	EXPECT_FALSE(parse_bool_flag(empty, empty, 1));
-}
-TEST(ParseBoolFlagWithEmpty, EmptyToSomethingToFirstChar)
-{
-	EXPECT_FALSE(parse_bool_flag(empty, str_one, 1));
-	EXPECT_FALSE(parse_bool_flag(str_one, empty, 1));
-	EXPECT_FALSE(parse_bool_flag(empty, str_two, 1));
-	EXPECT_FALSE(parse_bool_flag(str_two, empty, 1));
+	char const emptyHaystack[1] = "";
+	char const emptyNeedle[1] = "";
+	char const NonEmptyHaystack[] = "moo";
+
+	ASSERT_THAT(strstr(emptyHaystack, emptyNeedle), Eq(emptyHaystack));
+	ASSERT_THAT(strstr(emptyNeedle, emptyNeedle), Eq(emptyNeedle));
+	ASSERT_THAT(strstr(NonEmptyHaystack, emptyNeedle), Eq(NonEmptyHaystack));
 }
 
-TEST(ParseBoolFlagWithDash, TestDataPrecondition)
+TEST(ParseBoolFlag, EmptyExact)
 {
-	ASSERT_THAT(dash, Ne(another_dash));
-	ASSERT_THAT(dash, StrEq(another_dash));
+	ASSERT_TRUE(parse_bool_flag(empty, another_empty, -1));
+	ASSERT_TRUE(parse_bool_flag(empty, empty, -1));
+}
+TEST(ParseBoolFlag, EmptyToSomethingExact)
+{
+	ASSERT_FALSE(parse_bool_flag(empty, str_one, -1));
+	ASSERT_FALSE(parse_bool_flag(str_one, empty, -1));
+}
+TEST(ParseBoolFlag, EmptyZero)
+{
+	ASSERT_TRUE(parse_bool_flag(empty, another_empty, 0));
+	ASSERT_TRUE(parse_bool_flag(empty, empty, 0));
+}
+TEST(ParseBoolFlag, EmptyToSomethingZero)
+{
+	ASSERT_TRUE(parse_bool_flag(empty, str_one, 0));
+	ASSERT_FALSE(parse_bool_flag(str_one, empty, 0));
+}
+TEST(ParseBoolFlag, EmptyToFirstChar)
+{
+	ASSERT_FALSE(parse_bool_flag(empty, another_empty, 1));
+	ASSERT_FALSE(parse_bool_flag(empty, empty, 1));
+}
+TEST(ParseBoolFlag, EmptyToSomethingToFirstChar)
+{
+	ASSERT_FALSE(parse_bool_flag(empty, str_one, 1));
+	ASSERT_FALSE(parse_bool_flag(str_one, empty, 1));
+	ASSERT_FALSE(parse_bool_flag(empty, str_two, 1));
+	ASSERT_FALSE(parse_bool_flag(str_two, empty, 1));
 }
 
-TEST(ParseBoolFlagWithDash, Exact)
+TEST(ParseBoolFlag, Exact)
 {
-	EXPECT_TRUE(parse_bool_flag(dash, another_dash, -1));
-	EXPECT_TRUE(parse_bool_flag(dash, dash, -1));
+	ASSERT_TRUE(parse_bool_flag(dash, another_dash, -1));
+	ASSERT_TRUE(parse_bool_flag(dash, dash, -1));
 }
-TEST(ParseBoolFlagWithDash, DashoSomethingExact)
+TEST(ParseBoolFlag, DashToSomethingExact)
 {
-	EXPECT_FALSE(parse_bool_flag(dash, str_one, -1));
-	EXPECT_FALSE(parse_bool_flag(str_one, dash, -1));
-	EXPECT_FALSE(parse_bool_flag(dash, str_two, -1));
-	EXPECT_FALSE(parse_bool_flag(str_two, dash, -1));
+	ASSERT_FALSE(parse_bool_flag(dash, str_one, -1));
+	ASSERT_FALSE(parse_bool_flag(str_one, dash, -1));
+	ASSERT_FALSE(parse_bool_flag(dash, str_two, -1));
+	ASSERT_FALSE(parse_bool_flag(str_two, dash, -1));
 }
-TEST(ParseBoolFlagWithDash, DashZero)
+TEST(ParseBoolFlag, DashZero)
 {
-	EXPECT_TRUE(parse_bool_flag(dash, another_dash, 0));
-	EXPECT_TRUE(parse_bool_flag(dash, dash, 0));
+	ASSERT_TRUE(parse_bool_flag(dash, another_dash, 0));
+	ASSERT_TRUE(parse_bool_flag(dash, dash, 0));
 }
-TEST(ParseBoolFlagWithDash, DashToSomethingZero)
+TEST(ParseBoolFlag, DashToSomethingZero)
 {
-	EXPECT_FALSE(parse_bool_flag(dash, str_one, 0));
-	EXPECT_FALSE(parse_bool_flag(str_one, dash, 0));
-	EXPECT_FALSE(parse_bool_flag(dash, str_two, 0));
-	EXPECT_FALSE(parse_bool_flag(str_two, dash, 0));
+	ASSERT_FALSE(parse_bool_flag(dash, str_one, 0));
+	ASSERT_FALSE(parse_bool_flag(str_one, dash, 0));
+	ASSERT_FALSE(parse_bool_flag(dash, str_two, 0));
+	ASSERT_FALSE(parse_bool_flag(str_two, dash, 0));
 }
-TEST(ParseBoolFlagWithDash, DashToFirstChar)
+TEST(ParseBoolFlag, DashToFirstChar)
 {
-	EXPECT_TRUE(parse_bool_flag(dash, another_dash, 1));
-	EXPECT_TRUE(parse_bool_flag(dash, dash, 1));
+	ASSERT_TRUE(parse_bool_flag(dash, another_dash, 1));
+	ASSERT_TRUE(parse_bool_flag(dash, dash, 1));
 }
-TEST(ParseBoolFlagWithDash, DashToSomethingToFirstChar)
+TEST(ParseBoolFlag, DashToSomethingToFirstChar)
 {
-	EXPECT_FALSE(parse_bool_flag(dash, str_one, 1));
-	EXPECT_FALSE(parse_bool_flag(str_one, dash, 1));
-	EXPECT_FALSE(parse_bool_flag(dash, str_two, 1));
-	EXPECT_FALSE(parse_bool_flag(str_two, dash, 1));
+	ASSERT_FALSE(parse_bool_flag(dash, str_one, 1));
+	ASSERT_FALSE(parse_bool_flag(str_one, dash, 1));
+	ASSERT_FALSE(parse_bool_flag(dash, str_two, 1));
+	ASSERT_FALSE(parse_bool_flag(str_two, dash, 1));
 }
-/*
- *
- */
-TEST(ParseBoolFlagWithDash, DashToDashieExact)
+TEST(ParseBoolFlag, DashToDashieExact)
 {
-	EXPECT_FALSE(parse_bool_flag(dash, "-a", -1));
-	EXPECT_FALSE(parse_bool_flag("-a", dash, -1));
+	ASSERT_FALSE(parse_bool_flag(dash, "-a", -1));
+	ASSERT_FALSE(parse_bool_flag("-a", dash, -1));
 }
-TEST(ParseBoolFlagWithDash, DashToDashieFirstChar)
+TEST(ParseBoolFlag, DashToDashieFirstChar)
 {
-	EXPECT_TRUE(parse_bool_flag(dash, "-a", 1));
-	EXPECT_FALSE(parse_bool_flag("-a", dash, 1));
+	ASSERT_TRUE(parse_bool_flag(dash, "-a", 1));
+	ASSERT_FALSE(parse_bool_flag("-a", dash, 1));
 }
-
-} // namespace

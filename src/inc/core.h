@@ -16,18 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CORE_H
-#define CORE_H
+#ifndef LCI_INC_CORE_H_
+#define LCI_INC_CORE_H_
 #else
-#error "CORE_H"
+#error "LCI_INC_CORE_H_"
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-	int parse_bool_flag(char const unknown_arg[], char const option[],
-			    int unique_from);
+int parse_bool_flag(char const unknown_arg[], char const option[],
+		    int unique_from);
 
 #ifdef __cplusplus
 }

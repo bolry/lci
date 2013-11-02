@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define _GNU_SOURCE
+/*#define _GNU_SOURCE*/
 
 #include <libgen.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,11 +28,12 @@
 #include <unistd.h>
 
 #include "inc/core.h"
+#include "inc/util.h"
 
 #define TOOL_NAME "lci"
 
 static char const *copyright[] = {
-	"Copyright (C) 2013 Bo Rydberg",
+	"Copyright (c) 2013 Bo Rydberg",
 	"License GPLv2: GNU GPL version 2 or later <http://gnu.org/licenses/>",
 	"This is free software: you are free to change and redistribute it.",
 	"There is NO WARRANTY, to the extent permitted by law.",
@@ -44,7 +46,7 @@ static char const *version[] = {
 };
 
 static char const *banner[] = {
-	TOOL_NAME " copyright (c) 2013 bo rydberg",
+	TOOL_NAME " Copyright (c) 2013 Bo Rydberg",
 	NULL
 };
 
@@ -80,7 +82,7 @@ static void fputa(char const *arr[], FILE * stream)
 	int i;
 
 	for (i = 0; arr[i] != NULL; ++i)
-		if (fprintf(stream, "%s\n", arr[i]) < 0)
+		if (StreamFormatOutput(stream, "%s\n", arr[i]) < 0)
 			exit(EXIT_FAILURE);
 }
 
@@ -120,7 +122,7 @@ int parse_bool_flag(char const unknown_arg[], char const option[],
 	if (unique_from < 0) {
 		match = (strcmp(unknown_arg, option) == 0);
 	} else {
-		char const * const res = strstr(option, unknown_arg);
+		char const *const res = strstr(option, unknown_arg);
 		if (res != option)
 			match = 0;
 		else
@@ -150,46 +152,46 @@ static void lci_options(int *cnt, char *vec[])
 	for (i = 1; i != *cnt; ++i) {
 		if (parse_bool_flag(vec[i], "-b", -1) ||
 		    parse_bool_flag(vec[i], "--no-banner", 6)) {
-			fputs("no banner\n", stderr);
+			log_puts(LCI_SEV_DEBUG, "no banner\n");
 			show_banner = 0;
 			remove_index(&i, cnt, vec);
 			continue;
 		}
 		if (parse_bool_flag(vec[i], "-c", -1) ||
 		    parse_bool_flag(vec[i], "--no-compiler", 6)) {
-			fputs("no compiler\n", stderr);
+			log_puts(LCI_SEV_DEBUG, "no compiler\n");
 			run_compiler = 0;
 			remove_index(&i, cnt, vec);
 			continue;
 		}
 		if (parse_bool_flag(vec[i], "-f", -1) ||
 		    parse_bool_flag(vec[i], "--force-lint", 3)) {
-			fputs("force lint\n", stderr);
+			log_puts(LCI_SEV_DEBUG, "force lint\n");
 			force_lint = 1;
 			remove_index(&i, cnt, vec);
 			continue;
 		}
 		if (parse_bool_flag(vec[i], "-l", -1) ||
 		    parse_bool_flag(vec[i], "--no-lint", 6)) {
-			fputs("no lint\n", stderr);
+			log_puts(LCI_SEV_DEBUG, "no lint\n");
 			run_lint = 0;
 			remove_index(&i, cnt, vec);
 			continue;
 		}
 		if (parse_bool_flag(vec[i], "-v", -1) ||
 		    parse_bool_flag(vec[i], "--verbose", 6)) {
-			fputs("verbose\n", stderr);
+			log_puts(LCI_SEV_DEBUG, "verbose\n");
 			++verbose;
 			remove_index(&i, cnt, vec);
 			continue;
 		}
 		if (parse_bool_flag(vec[i], "--help", 3)) {
-			fputs("help\n", stderr);
+			log_puts(LCI_SEV_DEBUG, "help\n");
 			print_usage_on(stdout);
 			exit(EXIT_SUCCESS);
 		}
 		if (parse_bool_flag(vec[i], "--version", 6)) {
-			fputs("version\n", stderr);
+			log_puts(LCI_SEV_DEBUG, "version\n");
 			print_version_on(stdout);
 			exit(EXIT_SUCCESS);
 		}
@@ -219,21 +221,21 @@ int lci_main(int argc, char *argv[])
 		 * run compiler first and if OK then run lint
 		 */
 		int status;
-		pid_t pid;
-		pid_t wpid;
+		pid_t cpid;
+		pid_t w;
 
-		pid = fork();
-		if (-1 == pid) {
+		cpid = fork();
+		if (-1 == cpid) {
 			perror(TOOL_NAME ": fork");
 			exit(EXIT_FAILURE);
 		}
-		if (0 == pid) {
+		if (0 == cpid) {
 			(void)execvp(argv[1], &argv[1]);
 			perror(TOOL_NAME ": execvp");
 			_exit(EXIT_FAILURE);
 		}
-		wpid = waitpid(pid, &status, 0);
-		if (wpid != pid) {
+		w = waitpid(cpid, &status, 0);
+		if (w != cpid) {
 			perror(TOOL_NAME ": waitpid");
 			exit(EXIT_FAILURE);
 		}
