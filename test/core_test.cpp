@@ -16,14 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+extern "C" {
 #include "inc/core.h"
+}
 
 #include <gmock/gmock.h>
 
 using namespace testing;
 
+/*
+ * Defining array with same content, since it is implementation defined it
+ * duplicate strings occupy the same memory or not.
+ */
 char const empty[0 + 1] = "";
-char const another_empty[0 + 1] = "";
+char const another_empty [0 + 1] = "";
 char const dash[] = "-";
 char const another_dash[] = "-";
 char const str_one[1 + 1] = "a";
@@ -52,26 +58,31 @@ TEST(ParseBoolFlag, EmptyExact)
 	ASSERT_TRUE(parse_bool_flag(empty, another_empty, -1));
 	ASSERT_TRUE(parse_bool_flag(empty, empty, -1));
 }
+
 TEST(ParseBoolFlag, EmptyToSomethingExact)
 {
 	ASSERT_FALSE(parse_bool_flag(empty, str_one, -1));
 	ASSERT_FALSE(parse_bool_flag(str_one, empty, -1));
 }
+
 TEST(ParseBoolFlag, EmptyZero)
 {
 	ASSERT_TRUE(parse_bool_flag(empty, another_empty, 0));
 	ASSERT_TRUE(parse_bool_flag(empty, empty, 0));
 }
+
 TEST(ParseBoolFlag, EmptyToSomethingZero)
 {
 	ASSERT_TRUE(parse_bool_flag(empty, str_one, 0));
 	ASSERT_FALSE(parse_bool_flag(str_one, empty, 0));
 }
+
 TEST(ParseBoolFlag, EmptyToFirstChar)
 {
 	ASSERT_FALSE(parse_bool_flag(empty, another_empty, 1));
 	ASSERT_FALSE(parse_bool_flag(empty, empty, 1));
 }
+
 TEST(ParseBoolFlag, EmptyToSomethingToFirstChar)
 {
 	ASSERT_FALSE(parse_bool_flag(empty, str_one, 1));
@@ -85,6 +96,7 @@ TEST(ParseBoolFlag, Exact)
 	ASSERT_TRUE(parse_bool_flag(dash, another_dash, -1));
 	ASSERT_TRUE(parse_bool_flag(dash, dash, -1));
 }
+
 TEST(ParseBoolFlag, DashToSomethingExact)
 {
 	ASSERT_FALSE(parse_bool_flag(dash, str_one, -1));
@@ -92,11 +104,13 @@ TEST(ParseBoolFlag, DashToSomethingExact)
 	ASSERT_FALSE(parse_bool_flag(dash, str_two, -1));
 	ASSERT_FALSE(parse_bool_flag(str_two, dash, -1));
 }
+
 TEST(ParseBoolFlag, DashZero)
 {
 	ASSERT_TRUE(parse_bool_flag(dash, another_dash, 0));
 	ASSERT_TRUE(parse_bool_flag(dash, dash, 0));
 }
+
 TEST(ParseBoolFlag, DashToSomethingZero)
 {
 	ASSERT_FALSE(parse_bool_flag(dash, str_one, 0));
@@ -104,11 +118,13 @@ TEST(ParseBoolFlag, DashToSomethingZero)
 	ASSERT_FALSE(parse_bool_flag(dash, str_two, 0));
 	ASSERT_FALSE(parse_bool_flag(str_two, dash, 0));
 }
+
 TEST(ParseBoolFlag, DashToFirstChar)
 {
 	ASSERT_TRUE(parse_bool_flag(dash, another_dash, 1));
 	ASSERT_TRUE(parse_bool_flag(dash, dash, 1));
 }
+
 TEST(ParseBoolFlag, DashToSomethingToFirstChar)
 {
 	ASSERT_FALSE(parse_bool_flag(dash, str_one, 1));
@@ -116,11 +132,13 @@ TEST(ParseBoolFlag, DashToSomethingToFirstChar)
 	ASSERT_FALSE(parse_bool_flag(dash, str_two, 1));
 	ASSERT_FALSE(parse_bool_flag(str_two, dash, 1));
 }
+
 TEST(ParseBoolFlag, DashToDashieExact)
 {
 	ASSERT_FALSE(parse_bool_flag(dash, "-a", -1));
 	ASSERT_FALSE(parse_bool_flag("-a", dash, -1));
 }
+
 TEST(ParseBoolFlag, DashToDashieFirstChar)
 {
 	ASSERT_TRUE(parse_bool_flag(dash, "-a", 1));
@@ -161,15 +179,18 @@ void TestRemoveIndex(char const* (&orig_argv)[N + 1], int const orig_offset,
 
 	remove_index(&offset, &argc, const_cast<char**>(orig_argv));
 
-	ASSERT_THAT(offset, Eq(orig_offset-1));
+	ASSERT_THAT(offset, Eq(orig_offset - 1));
 	ASSERT_THAT(argc, Eq(N));
-	for (int i = 0; i != N - 1; ++i)
+	/*
+	 * Yes, we want to compare the pointer addresses, no StrEq
+	 */
+	for (int i = 0; i != N; ++i)
 		EXPECT_THAT(orig_argv[i], Eq(exp_argv[i]));
-	EXPECT_THAT(orig_argv[N-1], Eq(exp_argv[N-1]));
 }
 
-char const* const RandomString[4] = { "", "Aircraft Carrier", "Vampire",
-		"Space Shuttle" };
+char const* const RandomString[3] = {
+		"Aircraft Carrier", "Vampire", "Space Shuttle"
+};
 
 TEST(RemoveIndex, MinimumCmdLineEmptyString)
 {
@@ -178,24 +199,132 @@ TEST(RemoveIndex, MinimumCmdLineEmptyString)
 
 	TestRemoveIndex(argv, 0, expected_argv);
 }
+
 TEST(RemoveIndex, MinimumCmdLineSomethingString)
 {
-	char const* argv[] = { RandomString[2], NULL };
+	char const* argv[] = { RandomString[1], NULL };
 	char const* const expected_argv[] = { NULL };
 
 	TestRemoveIndex(argv, 0, expected_argv);
 }
+
 TEST(RemoveIndex, FirstElementRemoved)
 {
-	char const* argv[] = { RandomString[3], RandomString[1], NULL };
-	char const* const expected_argv[] = { RandomString[1], NULL };
+	char const* argv[] = { RandomString[2], RandomString[0], NULL };
+	char const* const expected_argv[] = { RandomString[0], NULL };
 
 	TestRemoveIndex(argv, 0, expected_argv);
 }
+
 TEST(RemoveIndex, SecondElementRemoved)
 {
-	char const* argv[] = { RandomString[2], RandomString[1], NULL };
-	char const* const expected_argv[] = { RandomString[2], NULL };
+	char const* argv[] = { RandomString[1], RandomString[0], NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
 
 	TestRemoveIndex(argv, 1, expected_argv);
+}
+
+
+TEST(LciOptionsDeathTest, TooShortCmdLine)
+{
+	int argc = 0;
+	char * argv[] = { NULL };
+	ASSERT_DEATH(lci_options(&argc, argv), "usage:.*options:.*bugs");
+}
+
+TEST(LciOptionsDeathTest, ShortCmdLine)
+{
+	int argc = 1;
+	char const* argv[] = { RandomString[0], NULL };
+	ASSERT_DEATH(lci_options(&argc, (char**)argv), "usage:.*options:.*bugs");
+}
+
+template<int M, int N>
+void TestLciOptions(char const* (&orig_argv)[M], char const* const (&exp_argv)[N])
+{
+	int argc = M - 1;
+
+	lci_options(&argc, const_cast<char**>(orig_argv));
+
+	ASSERT_THAT(argc, Eq(N - 1));
+	for (int i = 0; i != N - 1; ++i)
+		EXPECT_THAT(orig_argv[i], Eq(exp_argv[i]));
+}
+
+TEST(LciOptions, BannerOptionShort)
+{
+	char const* argv[] = { RandomString[1], "-b", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_banner = show_banner;
+	show_banner = true;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_FALSE(show_banner);
+
+	show_banner = old_banner;
+}
+
+TEST(LciOptions, BannerOptionLong)
+{
+	char const* argv[] = { RandomString[1], "--no-banner", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_banner = show_banner;
+	show_banner = true;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_FALSE(show_banner);
+
+	show_banner = old_banner;
+}
+
+TEST(LciOptions, CompilerOptionLong)
+{
+	char const* argv[] = { RandomString[1], "--no-compiler", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_compiler = run_compiler;
+	run_compiler = true;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_FALSE(run_compiler);
+
+	run_compiler = old_compiler;
+}
+
+TEST(LciOptions, CompilerOptionShort)
+{
+	char const* argv[] = { RandomString[1], "-c", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_compiler = run_compiler;
+	run_compiler = true;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_FALSE(run_compiler);
+
+	run_compiler = old_compiler;
+}
+
+TEST(LciOptions, ForceLintOptionLong)
+{
+	char const* argv[] = { RandomString[1], "--force-lint", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_force_lint = force_lint;
+	force_lint = false;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_TRUE(force_lint);
+
+	force_lint = old_force_lint;
+}
+
+TEST(LciOptions, ForceLintOptionShort)
+{
+	char const* argv[] = { RandomString[1], "-f", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_force_lint = force_lint;
+	force_lint = false;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_TRUE(force_lint);
+
+	force_lint = old_force_lint;
 }

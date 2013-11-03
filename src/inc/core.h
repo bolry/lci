@@ -22,16 +22,12 @@
 #error "LCI_INC_CORE_H_"
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+extern int force_lint;
+extern int run_compiler;
+extern int show_banner;
 
-	void lci_options(int *cnt, char *vec[]);
-	int lci_called_by_real_name(char const *path);
-	int parse_bool_flag(char const unknown_arg[], char const option[],
-			    int unique_from);
-	void remove_index(int *offset, int *cnt, char *vec[]);
-
-#ifdef __cplusplus
-}
-#endif
+void lci_options(int *cnt, char *vec[]);
+int lci_called_by_real_name(char const *path);
+int parse_bool_flag(char const unknown_arg[], char const option[],
+		    int unique_from);
+void remove_index(int *offset, int *cnt, char *vec[]);

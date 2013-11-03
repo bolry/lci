@@ -28,10 +28,11 @@
 #include "inc/core.h"
 #include "inc/util.h"
 
-#define TOOL_NAME "lci"
+#define CANONICAL_TOOL_NAME "Lint Compiler Interceptor"
+#define COPYRIGHT_STRING "Copyright (c) 2013 Bo Rydberg"
 
 static char const *copyright[] = {
-	"Copyright (c) 2013 Bo Rydberg",
+	COPYRIGHT_STRING,
 	"License GPLv2: GNU GPL version 2 or later <http://gnu.org/licenses/>",
 	"This is free software: you are free to change and redistribute it.",
 	"There is NO WARRANTY, to the extent permitted by law.",
@@ -39,12 +40,12 @@ static char const *copyright[] = {
 };
 
 static char const *version[] = {
-	"Lint Compiler Interceptor 0.0",
+	CANONICAL_TOOL_NAME " 0.0",
 	NULL
 };
 
 static char const *banner[] = {
-	TOOL_NAME " Copyright (c) 2013 Bo Rydberg",
+	CANONICAL_TOOL_NAME " " COPYRIGHT_STRING,
 	NULL
 };
 
@@ -65,14 +66,14 @@ static char const *usage[] = {
 	"        --version      print version and exit",
 	"",
 	"Report bugs to: mailing-address",
-	"Lint Compiler Interceptor home page: <https://github.com/bolry/lci/>",
+	CANONICAL_TOOL_NAME " home page: <https://github.com/bolry/lci/>",
 	NULL
 };
 
-static int force_lint = 0;
-static int run_compiler = 1;
+int force_lint = 0;
+int run_compiler = 1;
 static int run_lint = 1;
-static int show_banner = 1;
+int show_banner = 1;
 static int verbose = 0;
 
 static void fputa(char const *arr[], FILE * stream)
@@ -88,27 +89,20 @@ static void fputa(char const *arr[], FILE * stream)
 
 int lci_called_by_real_name(char const *path)
 {
-	size_t const path_len = strlen(path);
-	if ((0u == path_len) || ('/' == path[path_len - 1u])) {
-		log_puts(LCI_SEV_DEBUG, "no path or trailing slash\n");
-		return 0;
-	}
-	else
-	{
-		int same;
-		char *tmp_path = platform_strdup(path);
-		if (NULL == tmp_path) {
-			log_puts(LCI_SEV_ALERT, "out-of-memory\n");
-			fputs(TOOL_NAME ": out-of-memory\n", stderr);
-			exit(EXIT_FAILURE);
-		}
-		{
-			char const *const bname = basename(tmp_path);
-			same = (strcmp(bname, TOOL_NAME) == 0);
-		}
-		free(tmp_path);
-		return same;
-	}
+	char *tmp_path;
+	char const *bname;
+	int same;
+
+	tmp_path = xstrdup(path);
+	bname = basename(tmp_path);
+	same = (strcmp(bname, TOOL_NAME) == 0);
+	free(tmp_path);
+	/*
+	 * Trailing slash check cause basename can remove it
+	 */
+	if (same)
+		same = (path[strlen(path) - 1u] != '/');
+	return same;
 }
 
 static void print_usage_on(FILE * stream)

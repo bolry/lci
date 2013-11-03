@@ -10,11 +10,15 @@ static FILE *log_stream_ = NULL;
 int (*format_output) (char const *format, ...) = printf;
 int (*stream_format_output) (FILE * stream, const char *format, ...) = fprintf;
 
-char *platform_strdup(char const *str)
+char *xstrdup(char const *str)
 {
 	char *dup = malloc(strlen(str) + 1u);
-	if (dup != NULL)
-		(void)strcpy(dup, str);
+	if (NULL == dup) {
+		log_puts(LCI_SEV_ALERT, "out-of-memory\n");
+		fputs(TOOL_NAME ": out-of-memory\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+	(void)strcpy(dup, str);
 	return dup;
 }
 
