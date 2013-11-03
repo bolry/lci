@@ -43,7 +43,8 @@ TEST(ParseBoolFlag,StrstrSearchOnEmptyNeedle)
 
 	ASSERT_THAT(strstr(emptyHaystack, emptyNeedle), Eq(emptyHaystack));
 	ASSERT_THAT(strstr(emptyNeedle, emptyNeedle), Eq(emptyNeedle));
-	ASSERT_THAT(strstr(NonEmptyHaystack, emptyNeedle), Eq(NonEmptyHaystack));
+	ASSERT_THAT(strstr(NonEmptyHaystack, emptyNeedle),
+			Eq(NonEmptyHaystack));
 }
 
 TEST(ParseBoolFlag, EmptyExact)
@@ -124,4 +125,77 @@ TEST(ParseBoolFlag, DashToDashieFirstChar)
 {
 	ASSERT_TRUE(parse_bool_flag(dash, "-a", 1));
 	ASSERT_FALSE(parse_bool_flag("-a", dash, 1));
+}
+
+TEST(LciCalledByRealName, NotApprovedNames)
+{
+	ASSERT_FALSE(lci_called_by_real_name(".."));
+	ASSERT_FALSE(lci_called_by_real_name("."));
+	ASSERT_FALSE(lci_called_by_real_name(""));
+	ASSERT_FALSE(lci_called_by_real_name("/"));
+	ASSERT_FALSE(lci_called_by_real_name("/lci/."));
+	ASSERT_FALSE(lci_called_by_real_name("/lci/"));
+	ASSERT_FALSE(lci_called_by_real_name("/usr/"));
+	ASSERT_FALSE(lci_called_by_real_name("/usr/lib"));
+	ASSERT_FALSE(lci_called_by_real_name("ci"));
+	ASSERT_FALSE(lci_called_by_real_name("lc"));
+	ASSERT_FALSE(lci_called_by_real_name("li"));
+	ASSERT_FALSE(lci_called_by_real_name("usr"));
+}
+
+TEST(LciCalledByRealName, ApprovedNames)
+{
+	ASSERT_TRUE(lci_called_by_real_name("../lci"));
+	ASSERT_TRUE(lci_called_by_real_name("./lci"));
+	ASSERT_TRUE(lci_called_by_real_name("/lci"));
+	ASSERT_TRUE(lci_called_by_real_name("/usr/lci"));
+	ASSERT_TRUE(lci_called_by_real_name("lci"));
+}
+
+template<int N>
+void TestRemoveIndex(char const* (&orig_argv)[N + 1], int const orig_offset,
+		char const* const (&exp_argv)[N])
+{
+	int offset = orig_offset;
+	int argc = N + 1;
+
+	remove_index(&offset, &argc, const_cast<char**>(orig_argv));
+
+	ASSERT_THAT(offset, Eq(orig_offset-1));
+	ASSERT_THAT(argc, Eq(N));
+	for (int i = 0; i != N - 1; ++i)
+		EXPECT_THAT(orig_argv[i], Eq(exp_argv[i]));
+	EXPECT_THAT(orig_argv[N-1], Eq(exp_argv[N-1]));
+}
+
+char const* const RandomString[4] = { "", "Aircraft Carrier", "Vampire",
+		"Space Shuttle" };
+
+TEST(RemoveIndex, MinimumCmdLineEmptyString)
+{
+	char const* argv[] = { "", NULL };
+	char const* const expected_argv[] = { NULL };
+
+	TestRemoveIndex(argv, 0, expected_argv);
+}
+TEST(RemoveIndex, MinimumCmdLineSomethingString)
+{
+	char const* argv[] = { RandomString[2], NULL };
+	char const* const expected_argv[] = { NULL };
+
+	TestRemoveIndex(argv, 0, expected_argv);
+}
+TEST(RemoveIndex, FirstElementRemoved)
+{
+	char const* argv[] = { RandomString[3], RandomString[1], NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+
+	TestRemoveIndex(argv, 0, expected_argv);
+}
+TEST(RemoveIndex, SecondElementRemoved)
+{
+	char const* argv[] = { RandomString[2], RandomString[1], NULL };
+	char const* const expected_argv[] = { RandomString[2], NULL };
+
+	TestRemoveIndex(argv, 1, expected_argv);
 }

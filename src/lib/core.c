@@ -16,8 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*#define _GNU_SOURCE*/
-
 #include <libgen.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -82,25 +80,35 @@ static void fputa(char const *arr[], FILE * stream)
 	int i;
 
 	for (i = 0; arr[i] != NULL; ++i)
-		if (StreamFormatOutput(stream, "%s\n", arr[i]) < 0)
+		if (stream_format_output(stream, "%s\n", arr[i]) < 0) {
+			log_puts(LCI_SEV_ALERT, "cannot print\n");
 			exit(EXIT_FAILURE);
+		}
 }
 
-static int lci_called_by_real_name(char const *path)
+int lci_called_by_real_name(char const *path)
 {
-	char *bname;
-	char *tmp_path;
-	int same;
-
-	tmp_path = strdup(path);
-	if (NULL == tmp_path) {
-		fputs(TOOL_NAME ": out of memory\n", stderr);
-		exit(EXIT_FAILURE);
+	size_t const path_len = strlen(path);
+	if ((0u == path_len) || ('/' == path[path_len - 1u])) {
+		log_puts(LCI_SEV_DEBUG, "no path or trailing slash\n");
+		return 0;
 	}
-	bname = basename(tmp_path);
-	same = (strcmp(bname, TOOL_NAME) == 0);
-	free(tmp_path);
-	return same;
+	else
+	{
+		int same;
+		char *tmp_path = platform_strdup(path);
+		if (NULL == tmp_path) {
+			log_puts(LCI_SEV_ALERT, "out-of-memory\n");
+			fputs(TOOL_NAME ": out-of-memory\n", stderr);
+			exit(EXIT_FAILURE);
+		}
+		{
+			char const *const bname = basename(tmp_path);
+			same = (strcmp(bname, TOOL_NAME) == 0);
+		}
+		free(tmp_path);
+		return same;
+	}
 }
 
 static void print_usage_on(FILE * stream)
@@ -120,9 +128,11 @@ int parse_bool_flag(char const unknown_arg[], char const option[],
 	int match;
 
 	if (unique_from < 0) {
+		log_puts(LCI_SEV_DEBUG, "exact match requested\n");
 		match = (strcmp(unknown_arg, option) == 0);
 	} else {
 		char const *const res = strstr(option, unknown_arg);
+		log_printf(LCI_SEV_DEBUG, "first %d must match\n", unique_from);
 		if (res != option)
 			match = 0;
 		else
@@ -131,12 +141,16 @@ int parse_bool_flag(char const unknown_arg[], char const option[],
 	return match;
 }
 
-static void remove_index(int *offset, int *cnt, char *vec[])
+void remove_index(int *offset, int *cnt, char *vec[])
 {
-	int i;
-
-	for (i = *offset; i != *cnt; ++i)
-		vec[i] = vec[i + 1];
+	/*
+	 * memmove does this
+	 *      int i;
+	 *      for (i = *offset; i < *cnt; ++i)
+	 *              vec[i] = vec[i + 1];
+	 */
+	memmove(&vec[*offset], &vec[*offset + 1],
+		sizeof(char *) * (*cnt - *offset));
 	--(*cnt);
 	--(*offset);
 }

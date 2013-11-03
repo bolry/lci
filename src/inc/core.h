@@ -26,8 +26,10 @@
 extern "C" {
 #endif
 
-int parse_bool_flag(char const unknown_arg[], char const option[],
-		    int unique_from);
+	int lci_called_by_real_name(char const *path);
+	int parse_bool_flag(char const unknown_arg[], char const option[],
+			    int unique_from);
+	void remove_index(int *offset, int *cnt, char *vec[]);
 
 #ifdef __cplusplus
 }
