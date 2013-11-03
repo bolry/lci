@@ -145,9 +145,8 @@ void remove_index(int *offset, int *cnt, char *vec[])
 {
 	/*
 	 * memmove does this
-	 *      int i;
-	 *      for (i = *offset; i < *cnt; ++i)
-	 *              vec[i] = vec[i + 1];
+	 *     for (int i = *offset; i < *cnt; ++i)
+	 *             vec[i] = vec[i + 1];
 	 */
 	memmove(&vec[*offset], &vec[*offset + 1],
 		sizeof(char *) * (*cnt - *offset));
@@ -155,7 +154,7 @@ void remove_index(int *offset, int *cnt, char *vec[])
 	--(*offset);
 }
 
-static void lci_options(int *cnt, char *vec[])
+void lci_options(int *cnt, char *vec[])
 {
 	int i;
 

@@ -31,21 +31,17 @@ int log_printf(enum severity_t severity, const char *format, ...)
 
 int log_vprintf(enum severity_t severity, const char *format, va_list args)
 {
-	if (is_severity_logged(severity)) {
-		if (NULL == log_stream_)
-			log_stream_ = stderr;
-		return vfprintf(log_stream_, format, args);
-	}
+	if (is_severity_logged(severity))
+		if (log_stream_ != NULL)
+			return vfprintf(log_stream_, format, args);
 	return 0;
 }
 
 void log_puts(enum severity_t severity, const char *message)
 {
-	if (is_severity_logged(severity)) {
-		if (NULL == log_stream_)
-			log_stream_ = stderr;
-		(void)fputs(message, log_stream_);
-	}
+	if (is_severity_logged(severity))
+		if (log_stream_ != NULL)
+			(void)fputs(message, log_stream_);
 }
 
 int is_severity_logged(enum severity_t severity)

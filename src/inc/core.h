@@ -26,6 +26,7 @@
 extern "C" {
 #endif
 
+	void lci_options(int *cnt, char *vec[]);
 	int lci_called_by_real_name(char const *path);
 	int parse_bool_flag(char const unknown_arg[], char const option[],
 			    int unique_from);
