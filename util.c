@@ -30,7 +30,7 @@ int (*stream_format_output) (FILE * stream, char const *format, ...) = fprintf;
 
 char *xstrdup(char const *str)
 {
-	char *dup = malloc(strlen(str) + 1u);
+	char *dup = (char *)malloc(strlen(str) + 1u);
 	if (NULL == dup) {
 		log_puts(LCI_SEV_ALERT, "out-of-memory\n");
 		fputs(TOOL_NAME ": out-of-memory\n", stderr);
@@ -87,5 +87,5 @@ void inc_severity_ceiling(void)
 {
 	enum severity const severity = get_severity_ceiling();
 	if (severity < LCI_SEV_DEBUG)
-		set_severity_ceiling(severity + 1);
+		set_severity_ceiling((enum severity)(severity + 1));
 }
