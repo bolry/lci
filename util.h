@@ -24,7 +24,7 @@
 
 #define TOOL_NAME "lci"
 
-enum severity_t {
+enum severity {
 	LCI_SEV_EMERGENCY,	/*!< system is unusable */
 	LCI_SEV_ALERT,		/*!< action must be taken immediately */
 	LCI_SEV_CRITICAL,	/*!< critical conditions */
@@ -35,14 +35,15 @@ enum severity_t {
 	LCI_SEV_DEBUG		/*!< debug-level messages */
 };
 
-extern int is_severity_logged(enum severity_t severity);
-extern enum severity_t get_severity_ceiling(void);
-extern enum severity_t set_severity_ceiling(enum severity_t ceiling);
-extern int log_printf(enum severity_t severity, char const *format, ...);
-extern int log_vprintf(enum severity_t severity, char const *format,
+extern enum severity get_severity_ceiling(void);
+extern enum severity set_severity_ceiling(enum severity ceiling);
+extern int is_severity_logged(enum severity severity);
+extern void inc_severity_ceiling(void);
+extern int log_printf(enum severity severity, char const *format, ...);
+extern int log_vprintf(enum severity severity, char const *format,
 		       va_list args);
-extern void log_puts(enum severity_t severity, char const *message);
+extern void log_puts(enum severity severity, char const *message);
 
-extern int (*format_output) (const char *format, ...);
-extern int (*stream_format_output) (FILE * stream, const char *format, ...);
+extern int (*format_output) (char const *format, ...);
+extern int (*stream_format_output) (FILE * stream, char const *format, ...);
 extern char *xstrdup(char const *s);

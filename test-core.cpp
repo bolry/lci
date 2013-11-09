@@ -17,10 +17,15 @@
  */
 
 extern "C" {
+#include <stdarg.h>
+#include <stdio.h>
 #include "core.h"
+#include "util.h"
 }
 
 #include <gmock/gmock.h>
+
+#define ARGV_COUNT(x) ((int)((int)sizeof(x) / (int)sizeof(*x)))
 
 using namespace testing;
 
@@ -34,6 +39,8 @@ char const dash[] = "-";
 char const another_dash[] = "-";
 char const str_one[1 + 1] = "a";
 char const str_two[2 + 1] = "bc";
+
+char const usage_regex[] = "usage:.*options:.*bugs";
 
 TEST(ParseBoolFlag, TestdataPreconditions)
 {
@@ -216,7 +223,15 @@ TEST(RemoveIndex, FirstElementRemoved)
 	TestRemoveIndex(argv, 0, expected_argv);
 }
 
-TEST(RemoveIndex, SecondElementRemoved)
+TEST(RemoveIndex, MiddleElementRemoved)
+{
+	char const* argv[] = { RandomString[2], RandomString[1], RandomString[0], NULL };
+	char const* const expected_argv[] = { RandomString[2], RandomString[0], NULL };
+
+	TestRemoveIndex(argv, 1, expected_argv);
+}
+
+TEST(RemoveIndex, LastElementRemoved)
 {
 	char const* argv[] = { RandomString[1], RandomString[0], NULL };
 	char const* const expected_argv[] = { RandomString[1], NULL };
@@ -224,19 +239,20 @@ TEST(RemoveIndex, SecondElementRemoved)
 	TestRemoveIndex(argv, 1, expected_argv);
 }
 
-
 TEST(LciOptionsDeathTest, TooShortCmdLine)
 {
-	int argc = 0;
-	char * argv[] = { NULL };
-	ASSERT_DEATH(lci_options(&argc, argv), "usage:.*options:.*bugs");
+	char *argv[] = { NULL };
+	int argc = ARGV_COUNT(argv) - 1;
+
+	ASSERT_DEATH(lci_options(&argc, argv), usage_regex);
 }
 
 TEST(LciOptionsDeathTest, ShortCmdLine)
 {
-	int argc = 1;
-	char const* argv[] = { RandomString[0], NULL };
-	ASSERT_DEATH(lci_options(&argc, (char**)argv), "usage:.*options:.*bugs");
+	char const *argv[] = { RandomString[0], NULL };
+	int argc = ARGV_COUNT(argv) - 1;
+
+	ASSERT_DEATH(lci_options(&argc, (char**)argv), usage_regex);
 }
 
 template<int M, int N>
@@ -277,9 +293,35 @@ TEST(LciOptions, BannerOptionLong)
 	show_banner = old_banner;
 }
 
+TEST(LciOptions, BannerOptionJustLongEnough)
+{
+	char const* argv[] = { RandomString[1], "--no-b", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_banner = show_banner;
+	show_banner = true;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_FALSE(show_banner);
+
+	show_banner = old_banner;
+}
+
 TEST(LciOptions, CompilerOptionLong)
 {
 	char const* argv[] = { RandomString[1], "--no-compiler", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_compiler = run_compiler;
+	run_compiler = true;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_FALSE(run_compiler);
+
+	run_compiler = old_compiler;
+}
+
+TEST(LciOptions, CompilerOptionJustLongEnough)
+{
+	char const* argv[] = { RandomString[1], "--no-c", NULL };
 	char const* const expected_argv[] = { RandomString[1], NULL };
 	int const old_compiler = run_compiler;
 	run_compiler = true;
@@ -316,6 +358,19 @@ TEST(LciOptions, ForceLintOptionLong)
 	force_lint = old_force_lint;
 }
 
+TEST(LciOptions, ForceLintOptionJustLongEnough)
+{
+	char const* argv[] = { RandomString[1], "--f", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_force_lint = force_lint;
+	force_lint = false;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_TRUE(force_lint);
+
+	force_lint = old_force_lint;
+}
+
 TEST(LciOptions, ForceLintOptionShort)
 {
 	char const* argv[] = { RandomString[1], "-f", NULL };
@@ -327,4 +382,95 @@ TEST(LciOptions, ForceLintOptionShort)
 	EXPECT_TRUE(force_lint);
 
 	force_lint = old_force_lint;
+}
+
+TEST(LciOptions, RunLintOptionLong)
+{
+	char const* argv[] = { RandomString[1], "--no-lint", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_run_lint = run_lint;
+	run_lint = true;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_FALSE(run_lint);
+	run_lint = old_run_lint;
+}
+
+TEST(LciOptions, RunLintOptionJustLongEnough)
+{
+	char const* argv[] = { RandomString[1], "--no-l", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_run_lint = run_lint;
+	run_lint = true;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_FALSE(run_lint);
+	run_lint = old_run_lint;
+}
+
+TEST(LciOptions, RunLintOptionShort)
+{
+	char const* argv[] = { RandomString[1], "-l", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	int const old_run_lint = run_lint;
+	run_lint = true;
+
+	TestLciOptions(argv, expected_argv);
+	EXPECT_FALSE(run_lint);
+	run_lint = old_run_lint;
+}
+
+TEST(LciOptions, VerboseOptionLong)
+{
+	char const* argv[] = { RandomString[1], "--verbose", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	enum severity const old_severity = set_severity_ceiling(LCI_SEV_NOTICE);
+
+	TestLciOptions(argv, expected_argv);
+	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_INFORMATIONAL));
+	(void)set_severity_ceiling(old_severity);
+}
+
+TEST(LciOptions, VerboseOptionJustLongEnough)
+{
+	char const* argv[] = { RandomString[1], "--verb", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	enum severity const old_severity = set_severity_ceiling(LCI_SEV_NOTICE);
+
+	TestLciOptions(argv, expected_argv);
+	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_INFORMATIONAL));
+	(void)set_severity_ceiling(old_severity);
+}
+
+TEST(LciOptions, VerboseOptionShort)
+{
+	char const* argv[] = { RandomString[1], "-v", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	enum severity const old_severity = set_severity_ceiling(LCI_SEV_NOTICE);
+
+	TestLciOptions(argv, expected_argv);
+	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_INFORMATIONAL));
+	(void)set_severity_ceiling(old_severity);
+}
+
+TEST(LciOptions, TwoVerboseOptionGivesHigherLevel)
+{
+	char const* argv[] = { RandomString[1], "-v", "--verbose", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	enum severity const old_severity = set_severity_ceiling(LCI_SEV_NOTICE);
+
+	TestLciOptions(argv, expected_argv);
+	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_DEBUG));
+	(void)set_severity_ceiling(old_severity);
+}
+
+TEST(LciOptions, ManyVerboseOptionsHitsCeiling)
+{
+	char const* argv[] = { RandomString[1], "--verb", "--verbo", "--verbos", NULL };
+	char const* const expected_argv[] = { RandomString[1], NULL };
+	enum severity const old_severity = set_severity_ceiling(LCI_SEV_NOTICE);
+
+	TestLciOptions(argv, expected_argv);
+	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_DEBUG));
+	(void)set_severity_ceiling(old_severity);
 }

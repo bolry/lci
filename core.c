@@ -72,9 +72,8 @@ static char const *usage[] = {
 
 int force_lint = 0;
 int run_compiler = 1;
-static int run_lint = 1;
+int run_lint = 1;
 int show_banner = 1;
-static int verbose = 0;
 
 static void fputa(char const *arr[], FILE * stream)
 {
@@ -188,7 +187,7 @@ void lci_options(int *cnt, char *vec[])
 		if (parse_bool_flag(vec[i], "-v", -1) ||
 		    parse_bool_flag(vec[i], "--verbose", 6)) {
 			log_puts(LCI_SEV_DEBUG, "verbose\n");
-			++verbose;
+			inc_severity_ceiling();
 			remove_index(&i, cnt, vec);
 			continue;
 		}

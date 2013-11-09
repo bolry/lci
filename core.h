@@ -24,6 +24,7 @@
 
 extern int force_lint;
 extern int run_compiler;
+extern int run_lint;
 extern int show_banner;
 
 void lci_options(int *cnt, char *vec[]);

@@ -22,11 +22,11 @@
 #include <string.h>
 #include "util.h"
 
-static enum severity_t severity_ceiling_ = LCI_SEV_NOTICE;
+static enum severity severity_ceiling_ = LCI_SEV_NOTICE;
 static FILE *log_stream_ = NULL;
 
 int (*format_output) (char const *format, ...) = printf;
-int (*stream_format_output) (FILE * stream, const char *format, ...) = fprintf;
+int (*stream_format_output) (FILE * stream, char const *format, ...) = fprintf;
 
 char *xstrdup(char const *str)
 {
@@ -40,7 +40,7 @@ char *xstrdup(char const *str)
 	return dup;
 }
 
-int log_printf(enum severity_t severity, const char *format, ...)
+int log_printf(enum severity severity, char const *format, ...)
 {
 	int ret;
 	va_list ap;
@@ -51,7 +51,7 @@ int log_printf(enum severity_t severity, const char *format, ...)
 	return ret;
 }
 
-int log_vprintf(enum severity_t severity, const char *format, va_list args)
+int log_vprintf(enum severity severity, char const *format, va_list args)
 {
 	if (is_severity_logged(severity))
 		if (log_stream_ != NULL)
@@ -59,26 +59,33 @@ int log_vprintf(enum severity_t severity, const char *format, va_list args)
 	return 0;
 }
 
-void log_puts(enum severity_t severity, const char *message)
+void log_puts(enum severity severity, char const *message)
 {
 	if (is_severity_logged(severity))
 		if (log_stream_ != NULL)
 			(void)fputs(message, log_stream_);
 }
 
-int is_severity_logged(enum severity_t severity)
+int is_severity_logged(enum severity severity)
 {
 	return (severity & 0xF) <= severity_ceiling_;
 }
 
-enum severity_t get_severity_ceiling(void)
+enum severity get_severity_ceiling(void)
 {
 	return severity_ceiling_;
 }
 
-enum severity_t set_severity_ceiling(enum severity_t ceiling)
+enum severity set_severity_ceiling(enum severity ceiling)
 {
-	enum severity_t r = severity_ceiling_;
+	enum severity r = severity_ceiling_;
 	severity_ceiling_ = ceiling;
 	return r;
+}
+
+void inc_severity_ceiling(void)
+{
+	enum severity const severity = get_severity_ceiling();
+	if (severity < LCI_SEV_DEBUG)
+		set_severity_ceiling(severity + 1);
 }
