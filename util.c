@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "inc/util.h"
+#include "util.h"
 
 static enum severity_t severity_ceiling_ = LCI_SEV_NOTICE;
 static FILE *log_stream_ = NULL;

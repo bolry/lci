@@ -25,8 +25,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "inc/core.h"
-#include "inc/util.h"
+#include "core.h"
+#include "util.h"
 
 #define CANONICAL_TOOL_NAME "Lint Compiler Interceptor"
 #define COPYRIGHT_STRING "Copyright (c) 2013 Bo Rydberg"

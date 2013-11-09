@@ -17,7 +17,7 @@
  */
 
 extern "C" {
-#include "inc/core.h"
+#include "core.h"
 }
 
 #include <gmock/gmock.h>
