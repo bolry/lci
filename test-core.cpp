@@ -25,7 +25,7 @@ extern "C" {
 
 #include <gmock/gmock.h>
 
-#define ARGV_COUNT(x) ((int)((int)sizeof(x) / (int)sizeof(*x)))
+#define ARGV_COUNT(x) ((int)((int)sizeof(x) / (int)sizeof(*x)) - 1)
 
 using namespace testing;
 
@@ -242,7 +242,7 @@ TEST(RemoveIndex, LastElementRemoved)
 TEST(LciOptionsDeathTest, TooShortCmdLine)
 {
 	char *argv[] = { NULL };
-	int argc = ARGV_COUNT(argv) - 1;
+	int argc = ARGV_COUNT(argv);
 
 	ASSERT_DEATH(lci_options(&argc, argv), usage_regex);
 }
@@ -250,7 +250,7 @@ TEST(LciOptionsDeathTest, TooShortCmdLine)
 TEST(LciOptionsDeathTest, ShortCmdLine)
 {
 	char const *argv[] = { RandomString[0], NULL };
-	int argc = ARGV_COUNT(argv) - 1;
+	int argc = ARGV_COUNT(argv);
 
 	ASSERT_DEATH(lci_options(&argc, (char**)argv), usage_regex);
 }
@@ -393,6 +393,7 @@ TEST(LciOptions, RunLintOptionLong)
 
 	TestLciOptions(argv, expected_argv);
 	EXPECT_FALSE(run_lint);
+
 	run_lint = old_run_lint;
 }
 
@@ -405,6 +406,7 @@ TEST(LciOptions, RunLintOptionJustLongEnough)
 
 	TestLciOptions(argv, expected_argv);
 	EXPECT_FALSE(run_lint);
+
 	run_lint = old_run_lint;
 }
 
@@ -417,6 +419,7 @@ TEST(LciOptions, RunLintOptionShort)
 
 	TestLciOptions(argv, expected_argv);
 	EXPECT_FALSE(run_lint);
+
 	run_lint = old_run_lint;
 }
 
@@ -428,6 +431,7 @@ TEST(LciOptions, VerboseOptionLong)
 
 	TestLciOptions(argv, expected_argv);
 	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_INFORMATIONAL));
+
 	(void)set_severity_ceiling(old_severity);
 }
 
@@ -439,6 +443,7 @@ TEST(LciOptions, VerboseOptionJustLongEnough)
 
 	TestLciOptions(argv, expected_argv);
 	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_INFORMATIONAL));
+
 	(void)set_severity_ceiling(old_severity);
 }
 
@@ -450,6 +455,7 @@ TEST(LciOptions, VerboseOptionShort)
 
 	TestLciOptions(argv, expected_argv);
 	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_INFORMATIONAL));
+
 	(void)set_severity_ceiling(old_severity);
 }
 
@@ -461,6 +467,7 @@ TEST(LciOptions, TwoVerboseOptionGivesHigherLevel)
 
 	TestLciOptions(argv, expected_argv);
 	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_DEBUG));
+
 	(void)set_severity_ceiling(old_severity);
 }
 
@@ -472,5 +479,22 @@ TEST(LciOptions, ManyVerboseOptionsHitsCeiling)
 
 	TestLciOptions(argv, expected_argv);
 	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_DEBUG));
+
 	(void)set_severity_ceiling(old_severity);
+}
+
+TEST(LciOptionsDeathTest, HelpOptionLong)
+{
+	char const* argv[] = { RandomString[1], "--help", NULL };
+	int argc = ARGV_COUNT(argv);
+
+	ASSERT_EXIT(lci_options(&argc, (char**)argv) , ExitedWithCode(0), "");
+}
+
+TEST(LciOptionsDeathTest, HelpOptionJustLongEnough)
+{
+	char const* argv[] = { RandomString[1], "--h", NULL };
+	int argc = ARGV_COUNT(argv);
+
+	ASSERT_EXIT(lci_options(&argc, (char**)argv) , ExitedWithCode(0), "");
 }
