@@ -10,6 +10,8 @@ if( CMAKE_COMPILER_IS_GNUCXX)
 endif( CMAKE_COMPILER_IS_GNUCXX)
 
 add_subdirectory(src)
+add_executable(lci main.c)
+target_link_libraries(lci lcicore)
 add_subdirectory(googlemock)
 enable_testing()
 include_directories(
