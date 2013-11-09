@@ -16,6 +16,8 @@ add_executable( lci main.c)
 target_link_libraries( lci lcicore)
 
 add_subdirectory( googlemock)
+add_executable( fake-lint-nt.exe fake-lint-nt.c)
+add_executable( fake-flint fake-flint.c)
 enable_testing()
 include_directories(
 	"${gtest_SOURCE_DIR}/include"

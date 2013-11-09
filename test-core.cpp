@@ -34,7 +34,7 @@ using namespace testing;
  * duplicate strings occupy the same memory or not.
  */
 char const empty[0 + 1] = "";
-char const another_empty [0 + 1] = "";
+char const another_empty[0 + 1] = "";
 char const dash[] = "-";
 char const another_dash[] = "-";
 char const str_one[1 + 1] = "a";
@@ -154,27 +154,27 @@ TEST(ParseBoolFlag, DashToDashieFirstChar)
 
 TEST(LciCalledByRealName, NotApprovedNames)
 {
-	ASSERT_FALSE(lci_called_by_real_name(".."));
-	ASSERT_FALSE(lci_called_by_real_name("."));
-	ASSERT_FALSE(lci_called_by_real_name(""));
-	ASSERT_FALSE(lci_called_by_real_name("/"));
-	ASSERT_FALSE(lci_called_by_real_name("/lci/."));
-	ASSERT_FALSE(lci_called_by_real_name("/lci/"));
-	ASSERT_FALSE(lci_called_by_real_name("/usr/"));
-	ASSERT_FALSE(lci_called_by_real_name("/usr/lib"));
-	ASSERT_FALSE(lci_called_by_real_name("ci"));
-	ASSERT_FALSE(lci_called_by_real_name("lc"));
-	ASSERT_FALSE(lci_called_by_real_name("li"));
-	ASSERT_FALSE(lci_called_by_real_name("usr"));
+	EXPECT_FALSE(lci_called_by_real_name(".."));
+	EXPECT_FALSE(lci_called_by_real_name("."));
+	EXPECT_FALSE(lci_called_by_real_name(""));
+	EXPECT_FALSE(lci_called_by_real_name("/"));
+	EXPECT_FALSE(lci_called_by_real_name("/lci/."));
+	EXPECT_FALSE(lci_called_by_real_name("/lci/"));
+	EXPECT_FALSE(lci_called_by_real_name("/usr/"));
+	EXPECT_FALSE(lci_called_by_real_name("/usr/lib"));
+	EXPECT_FALSE(lci_called_by_real_name("ci"));
+	EXPECT_FALSE(lci_called_by_real_name("lc"));
+	EXPECT_FALSE(lci_called_by_real_name("li"));
+	EXPECT_FALSE(lci_called_by_real_name("usr"));
 }
 
 TEST(LciCalledByRealName, ApprovedNames)
 {
-	ASSERT_TRUE(lci_called_by_real_name("../lci"));
-	ASSERT_TRUE(lci_called_by_real_name("./lci"));
-	ASSERT_TRUE(lci_called_by_real_name("/lci"));
-	ASSERT_TRUE(lci_called_by_real_name("/usr/lci"));
-	ASSERT_TRUE(lci_called_by_real_name("lci"));
+	EXPECT_TRUE(lci_called_by_real_name("../lci"));
+	EXPECT_TRUE(lci_called_by_real_name("./lci"));
+	EXPECT_TRUE(lci_called_by_real_name("/lci"));
+	EXPECT_TRUE(lci_called_by_real_name("/usr/lci"));
+	EXPECT_TRUE(lci_called_by_real_name("lci"));
 }
 
 template<int N>
@@ -195,9 +195,8 @@ void TestRemoveIndex(char const* (&orig_argv)[N + 1], int const orig_offset,
 		EXPECT_THAT(orig_argv[i], Eq(exp_argv[i]));
 }
 
-char const* const RandomString[3] = {
-		"Aircraft Carrier", "Vampire", "Space Shuttle"
-};
+char const* const RandomString[3] = { "Aircraft Carrier", "Vampire",
+		"Space Shuttle" };
 
 TEST(RemoveIndex, MinimumCmdLineEmptyString)
 {
@@ -225,8 +224,10 @@ TEST(RemoveIndex, FirstElementRemoved)
 
 TEST(RemoveIndex, MiddleElementRemoved)
 {
-	char const* argv[] = { RandomString[2], RandomString[1], RandomString[0], NULL };
-	char const* const expected_argv[] = { RandomString[2], RandomString[0], NULL };
+	char const* argv[] = { RandomString[2], RandomString[1],
+			RandomString[0], NULL };
+	char const* const expected_argv[] = { RandomString[2], RandomString[0],
+			NULL };
 
 	TestRemoveIndex(argv, 1, expected_argv);
 }
@@ -256,7 +257,8 @@ TEST(LciOptionsDeathTest, ShortCmdLine)
 }
 
 template<int M, int N>
-void TestLciOptions(char const* (&orig_argv)[M], char const* const (&exp_argv)[N])
+void TestLciOptions(char const* (&orig_argv)[M],
+		char const* const (&exp_argv)[N])
 {
 	int argc = M - 1;
 
@@ -432,7 +434,7 @@ TEST(LciOptions, VerboseOptionLong)
 	TestLciOptions(argv, expected_argv);
 	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_INFORMATIONAL));
 
-	(void)set_severity_ceiling(old_severity);
+	(void) set_severity_ceiling(old_severity);
 }
 
 TEST(LciOptions, VerboseOptionJustLongEnough)
@@ -444,7 +446,7 @@ TEST(LciOptions, VerboseOptionJustLongEnough)
 	TestLciOptions(argv, expected_argv);
 	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_INFORMATIONAL));
 
-	(void)set_severity_ceiling(old_severity);
+	(void) set_severity_ceiling(old_severity);
 }
 
 TEST(LciOptions, VerboseOptionShort)
@@ -456,7 +458,7 @@ TEST(LciOptions, VerboseOptionShort)
 	TestLciOptions(argv, expected_argv);
 	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_INFORMATIONAL));
 
-	(void)set_severity_ceiling(old_severity);
+	(void) set_severity_ceiling(old_severity);
 }
 
 TEST(LciOptions, TwoVerboseOptionGivesHigherLevel)
@@ -468,19 +470,20 @@ TEST(LciOptions, TwoVerboseOptionGivesHigherLevel)
 	TestLciOptions(argv, expected_argv);
 	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_DEBUG));
 
-	(void)set_severity_ceiling(old_severity);
+	(void) set_severity_ceiling(old_severity);
 }
 
 TEST(LciOptions, ManyVerboseOptionsHitsCeiling)
 {
-	char const* argv[] = { RandomString[1], "--verb", "--verbo", "--verbos", NULL };
+	char const* argv[] = { RandomString[1], "--verb", "--verbo", "--verbos",
+			NULL };
 	char const* const expected_argv[] = { RandomString[1], NULL };
 	enum severity const old_severity = set_severity_ceiling(LCI_SEV_NOTICE);
 
 	TestLciOptions(argv, expected_argv);
 	ASSERT_THAT(get_severity_ceiling(), Eq(LCI_SEV_DEBUG));
 
-	(void)set_severity_ceiling(old_severity);
+	(void) set_severity_ceiling(old_severity);
 }
 
 TEST(LciOptionsDeathTest, HelpOptionLong)
@@ -488,7 +491,7 @@ TEST(LciOptionsDeathTest, HelpOptionLong)
 	char const* argv[] = { RandomString[1], "--help", NULL };
 	int argc = ARGV_COUNT(argv);
 
-	ASSERT_EXIT(lci_options(&argc, (char**)argv) , ExitedWithCode(0), "");
+	ASSERT_EXIT(lci_options(&argc, (char**)argv), ExitedWithCode(0), "");
 }
 
 TEST(LciOptionsDeathTest, HelpOptionJustLongEnough)
@@ -496,5 +499,21 @@ TEST(LciOptionsDeathTest, HelpOptionJustLongEnough)
 	char const* argv[] = { RandomString[1], "--h", NULL };
 	int argc = ARGV_COUNT(argv);
 
-	ASSERT_EXIT(lci_options(&argc, (char**)argv) , ExitedWithCode(0), "");
+	ASSERT_EXIT(lci_options(&argc, (char**)argv), ExitedWithCode(0), "");
+}
+
+TEST(LciOptionsDeathTest, VersionOptionLong)
+{
+	char const* argv[] = { RandomString[1], "--version", NULL };
+	int argc = ARGV_COUNT(argv);
+
+	ASSERT_EXIT(lci_options(&argc, (char**)argv), ExitedWithCode(0), "");
+}
+
+TEST(LciOptionsDeathTest, VersionOptionJustLongEnough)
+{
+	char const* argv[] = { RandomString[1], "--vers", NULL };
+	int argc = ARGV_COUNT(argv);
+
+	ASSERT_EXIT(lci_options(&argc, (char**)argv), ExitedWithCode(0), "");
 }
