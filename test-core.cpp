@@ -517,3 +517,8 @@ TEST(LciOptionsDeathTest, VersionOptionJustLongEnough)
 
 	ASSERT_EXIT(lci_options(&argc, (char**)argv), ExitedWithCode(0), "");
 }
+
+TEST(LciMain, A)
+{
+
+}

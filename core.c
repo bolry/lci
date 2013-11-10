@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <errno.h>
 #include <libgen.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -30,6 +31,8 @@
 
 #define CANONICAL_TOOL_NAME "Lint Compiler Interceptor"
 #define COPYRIGHT_STRING "Copyright (c) 2013 Bo Rydberg"
+
+static char lint[] = "fake-lint-nt.exe";
 
 static char const *copyright[] = {
 	COPYRIGHT_STRING,
@@ -205,20 +208,22 @@ void lci_options(int *cnt, char *vec[])
 	}
 }
 
+int will_compile_and_or_link(int argc, char *argv[])
+{
+
+	return 1;
+}
+
 int lci_main(int argc, char *argv[])
 {
 	if (lci_called_by_real_name(argv[0]))
 		lci_options(&argc, argv);
 	if (show_banner)
 		fputa(banner, stderr);
-	if (run_compiler) {
-		/*
-		 * check compiler options for compiling and/or linking only,
-		 * turn off lint if anything else.
-		 */
-	}
-
-	if (fflush(NULL) != 0) {
+	if (run_compiler)
+		if (!will_compile_and_or_link(argc, argv))
+			run_lint = 0;
+	if (fflush(NULL) == EOF) {
 		perror(TOOL_NAME ": fflush");
 		exit(EXIT_FAILURE);
 	}
@@ -240,6 +245,7 @@ int lci_main(int argc, char *argv[])
 			perror(TOOL_NAME ": execvp");
 			_exit(EXIT_FAILURE);
 		}
+		errno = 0;
 		w = waitpid(cpid, &status, 0);
 		if (w != cpid) {
 			perror(TOOL_NAME ": waitpid");
@@ -256,14 +262,14 @@ int lci_main(int argc, char *argv[])
 		}
 		if (WIFSIGNALED(status))
 			exit(WTERMSIG(status));
-		argv[0] = (char *)"fl";
+		argv[0] = lint;
 		(void)execvp(argv[0], &argv[0]);
 		perror(TOOL_NAME ": execvp");
 	} else if (run_compiler) {
 		(void)execvp(argv[1], &argv[1]);
 		perror(TOOL_NAME ": execvp");
 	} else if (run_lint) {
-		argv[0] = (char *)"fl";
+		argv[0] = lint;
 		(void)execvp(argv[0], &argv[0]);
 		perror(TOOL_NAME ": execvp");
 	} else {
