@@ -25,7 +25,7 @@ extern "C" {
 
 #include <gmock/gmock.h>
 
-#define ARGV_COUNT(x) ((int)((int)sizeof(x) / (int)sizeof(*x)) - 1)
+#define ARGV_COUNT(x) (((int)sizeof(x) / (int)sizeof(*x)) - 1)
 
 using namespace testing;
 
@@ -41,6 +41,24 @@ char const str_one[1 + 1] = "a";
 char const str_two[2 + 1] = "bc";
 
 char const usage_regex[] = "usage:.*options:.*bugs";
+char big_buf[2048];
+
+void verify_stream_format_output(FILE * stream, char const *format, va_list ap)
+{
+	ASSERT_THAT(stream, Eq(stdout));
+	ASSERT_THAT(format, NotNull());
+	(void)vsnprintf(big_buf, sizeof(big_buf), format, ap);
+}
+
+int stream_format_output_sink(FILE * stream, char const *format, ...)
+{
+	va_list ap;
+	va_start(ap, format);
+	verify_stream_format_output(stream, format, ap);
+	va_end(ap);
+	return 0;
+}
+
 
 TEST(ParseBoolFlag, TestdataPreconditions)
 {
@@ -491,7 +509,9 @@ TEST(LciOptionsDeathTest, HelpOptionLong)
 	char const* argv[] = { RandomString[1], "--help", NULL };
 	int argc = ARGV_COUNT(argv);
 
+	stream_format_output = stream_format_output_sink;
 	ASSERT_EXIT(lci_options(&argc, (char**)argv), ExitedWithCode(0), "");
+	stream_format_output = fprintf;
 }
 
 TEST(LciOptionsDeathTest, HelpOptionJustLongEnough)
@@ -499,7 +519,9 @@ TEST(LciOptionsDeathTest, HelpOptionJustLongEnough)
 	char const* argv[] = { RandomString[1], "--h", NULL };
 	int argc = ARGV_COUNT(argv);
 
+	stream_format_output = stream_format_output_sink;
 	ASSERT_EXIT(lci_options(&argc, (char**)argv), ExitedWithCode(0), "");
+	stream_format_output = fprintf;
 }
 
 TEST(LciOptionsDeathTest, VersionOptionLong)
@@ -507,7 +529,9 @@ TEST(LciOptionsDeathTest, VersionOptionLong)
 	char const* argv[] = { RandomString[1], "--version", NULL };
 	int argc = ARGV_COUNT(argv);
 
+	stream_format_output = stream_format_output_sink;
 	ASSERT_EXIT(lci_options(&argc, (char**)argv), ExitedWithCode(0), "");
+	stream_format_output = fprintf;
 }
 
 TEST(LciOptionsDeathTest, VersionOptionJustLongEnough)
@@ -515,7 +539,9 @@ TEST(LciOptionsDeathTest, VersionOptionJustLongEnough)
 	char const* argv[] = { RandomString[1], "--vers", NULL };
 	int argc = ARGV_COUNT(argv);
 
+	stream_format_output = stream_format_output_sink;
 	ASSERT_EXIT(lci_options(&argc, (char**)argv), ExitedWithCode(0), "");
+	stream_format_output = fprintf;
 }
 
 TEST(LciMain, A)

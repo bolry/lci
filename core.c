@@ -163,35 +163,35 @@ void lci_options(int *cnt, char *vec[])
 		    parse_bool_flag(vec[i], "--no-banner", 6)) {
 			log_puts(LCI_SEV_DEBUG, "no banner\n");
 			show_banner = 0;
-			remove_index(&i, cnt, vec);
+			remove_index(&i, cnt, &vec[0]);
 			continue;
 		}
 		if (parse_bool_flag(vec[i], "-c", -1) ||
 		    parse_bool_flag(vec[i], "--no-compiler", 6)) {
 			log_puts(LCI_SEV_DEBUG, "no compiler\n");
 			run_compiler = 0;
-			remove_index(&i, cnt, vec);
+			remove_index(&i, cnt, &vec[0]);
 			continue;
 		}
 		if (parse_bool_flag(vec[i], "-f", -1) ||
 		    parse_bool_flag(vec[i], "--force-lint", 3)) {
 			log_puts(LCI_SEV_DEBUG, "force lint\n");
 			force_lint = 1;
-			remove_index(&i, cnt, vec);
+			remove_index(&i, cnt, &vec[0]);
 			continue;
 		}
 		if (parse_bool_flag(vec[i], "-l", -1) ||
 		    parse_bool_flag(vec[i], "--no-lint", 6)) {
 			log_puts(LCI_SEV_DEBUG, "no lint\n");
 			run_lint = 0;
-			remove_index(&i, cnt, vec);
+			remove_index(&i, cnt, &vec[0]);
 			continue;
 		}
 		if (parse_bool_flag(vec[i], "-v", -1) ||
 		    parse_bool_flag(vec[i], "--verbose", 6)) {
 			log_puts(LCI_SEV_DEBUG, "verbose\n");
 			inc_severity_ceiling();
-			remove_index(&i, cnt, vec);
+			remove_index(&i, cnt, &vec[0]);
 			continue;
 		}
 		if (parse_bool_flag(vec[i], "--help", 3)) {

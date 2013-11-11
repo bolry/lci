@@ -44,6 +44,5 @@ extern int log_vprintf(enum severity severity, char const *format,
 		       va_list args);
 extern void log_puts(enum severity severity, char const *message);
 
-extern int (*format_output) (char const *format, ...);
 extern int (*stream_format_output) (FILE * stream, char const *format, ...);
 extern char *xstrdup(char const *s);

@@ -25,7 +25,6 @@
 static enum severity severity_ceiling_ = LCI_SEV_NOTICE;
 static FILE *log_stream_ = NULL;
 
-int (*format_output) (char const *format, ...) = printf;
 int (*stream_format_output) (FILE * stream, char const *format, ...) = fprintf;
 
 char *xstrdup(char const *str)
