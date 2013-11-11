@@ -100,7 +100,7 @@ int lci_called_by_real_name(char const *path)
 	same = (strcmp(bname, TOOL_NAME) == 0);
 	free(tmp_path);
 	/*
-	 * Trailing slash check cause basename can remove it
+	 * Trailing slash check because basename can remove it
 	 */
 	if (same)
 		same = (path[strlen(path) - 1u] != '/');
@@ -210,23 +210,42 @@ void lci_options(int *cnt, char *vec[])
 
 int will_compile_and_or_link(int argc, char *argv[])
 {
-
 	return 1;
 }
 
-int lci_main(int argc, char *argv[])
+static void print_banner(void)
 {
-	if (lci_called_by_real_name(argv[0]))
-		lci_options(&argc, argv);
 	if (show_banner)
 		fputa(banner, stderr);
-	if (run_compiler)
-		if (!will_compile_and_or_link(argc, argv))
-			run_lint = 0;
+}
+
+static void flush_all(void)
+{
 	if (fflush(NULL) == EOF) {
 		perror(TOOL_NAME ": fflush");
 		exit(EXIT_FAILURE);
 	}
+}
+
+static void handle_possible_lci_options(int *argc, char *argv[])
+{
+	if (lci_called_by_real_name(argv[0]))
+		lci_options(argc, &argv[0]);
+}
+
+static void only_run_lint_if_compile_and_or_link(int argc, char *argv[])
+{
+	if (run_compiler)
+		if (!will_compile_and_or_link(argc, &argv[0]))
+			run_lint = 0;
+}
+
+int lci_main(int argc, char *argv[])
+{
+	handle_possible_lci_options(&argc, &argv[0]);
+	print_banner();
+	only_run_lint_if_compile_and_or_link(argc, &argv[0]);
+	flush_all();
 	if (run_compiler && run_lint) {
 		/*
 		 * run compiler first and if OK then run lint
